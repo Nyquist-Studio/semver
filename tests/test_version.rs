@@ -23,18 +23,6 @@ fn test_parse() {
         "unexpected character ' ' while parsing major version number",
     );
 
-    let err = version_err("1");
-    assert_to_string(
-        err,
-        "unexpected end of input while parsing major version number",
-    );
-
-    let err = version_err("1.2");
-    assert_to_string(
-        err,
-        "unexpected end of input while parsing minor version number",
-    );
-
     let err = version_err("1.2.3-");
     assert_to_string(err, "empty identifier segment in pre-release identifier");
 
@@ -49,6 +37,60 @@ fn test_parse() {
 
     let err = version_err("1.2.3-01");
     assert_to_string(err, "invalid leading zero in pre-release identifier");
+
+    let err = version_err("1-");
+    assert_to_string(err, "empty identifier segment in pre-release identifier");
+
+    let err = version_err("a");
+    assert_to_string(
+        err,
+        "unexpected character 'a' while parsing major version number",
+    );
+
+    let err = version_err("1 abc");
+    assert_to_string(err, "unexpected character ' ' after patch version number");
+
+    let err = version_err("1-01");
+    assert_to_string(err, "invalid leading zero in pre-release identifier");
+
+    let err = version_err("1.2-");
+    assert_to_string(err, "empty identifier segment in pre-release identifier");
+
+    let err = version_err("a");
+    assert_to_string(
+        err,
+        "unexpected character 'a' while parsing major version number",
+    );
+
+    let err = version_err("1.2 abc");
+    assert_to_string(err, "unexpected character ' ' after patch version number");
+
+    let err = version_err("1.2-01");
+    assert_to_string(err, "invalid leading zero in pre-release identifier");
+
+    let parsed = version("1");
+    let expected = Version::new(1, 0, 0);
+    assert_eq!(parsed, expected);
+    let expected = Version {
+        major: 1,
+        minor: 0,
+        patch: 0,
+        pre: Prerelease::EMPTY,
+        build: BuildMetadata::EMPTY,
+    };
+    assert_eq!(parsed, expected);
+
+    let parsed = version("1.2");
+    let expected = Version::new(1, 2, 0);
+    assert_eq!(parsed, expected);
+    let expected = Version {
+        major: 1,
+        minor: 2,
+        patch: 0,
+        pre: Prerelease::EMPTY,
+        build: BuildMetadata::EMPTY,
+    };
+    assert_eq!(parsed, expected);
 
     let parsed = version("1.2.3");
     let expected = Version::new(1, 2, 3);

@@ -28,11 +28,13 @@ impl FromStr for Version {
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         let mut pos = Position::Major;
         let (major, text) = numeric_identifier(text, pos)?;
-        let text = dot(text, pos)?;
+        //let text = dot(text, pos)?;
+        let text = remove_dot_if_existed(text);
 
         pos = Position::Minor;
         let (minor, text) = numeric_identifier(text, pos)?;
-        let text = dot(text, pos)?;
+        //let text = dot(text, pos)?;
+        let text = remove_dot_if_existed(text);
 
         pos = Position::Patch;
         let (patch, text) = numeric_identifier(text, pos)?;
@@ -175,7 +177,7 @@ fn numeric_identifier(input: &str, pos: Position) -> Result<(u64, &str), Error> 
         len += 1;
     }
 
-    if len > 0 {
+    if pos == Position::Minor || pos == Position::Patch || len > 0 {
         Ok((value, &input[len..]))
     } else if let Some(unexpected) = input[len..].chars().next() {
         Err(Error::new(ErrorKind::UnexpectedChar(pos, unexpected)))
@@ -196,14 +198,8 @@ fn wildcard(input: &str) -> Option<(char, &str)> {
     }
 }
 
-fn dot(input: &str, pos: Position) -> Result<&str, Error> {
-    if let Some(rest) = input.strip_prefix('.') {
-        Ok(rest)
-    } else if let Some(unexpected) = input.chars().next() {
-        Err(Error::new(ErrorKind::UnexpectedCharAfter(pos, unexpected)))
-    } else {
-        Err(Error::new(ErrorKind::UnexpectedEnd(pos)))
-    }
+fn remove_dot_if_existed(input: &str) -> &str {
+    input.strip_prefix('.').unwrap_or(input)
 }
 
 fn prerelease_identifier(input: &str) -> Result<(Prerelease, &str), Error> {
